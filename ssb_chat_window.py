@@ -6,16 +6,8 @@ Description: This script intened to have chat from the UI using streamlit
 """
 
 import streamlit as st
+from deep_translator import GoogleTranslator
 import requests
-
-# class DocumentModelConnector:
-#     """
-#     DocumentModel
-#     """
-#     def __init__(self, model_name, model_url, model_url_timeout):
-#         self.model_name = model_name
-#         self.model_url = model_url
-#         self.model_url_timeout = model_url_timeout
 
 
 class LifeLight():
@@ -28,7 +20,7 @@ class LifeLight():
         self.model_url_timeout = model_url_timeout
         self._prompt = None
 
-    def query_ollama(self, prompt: str) -> str:
+    def query_ollama(self, prompt: str, lang_pref: str='English') -> str:
         """
         For the prompt given, it will query the Model and return back the response
 
@@ -39,6 +31,7 @@ class LifeLight():
             str: Either response received from the model or no response
         """
         self._prompt = prompt
+        self.lang_pref = lang_pref.lower()
         payload = {
             "model": self.model_name,
             "prompt": self._prompt,
@@ -49,9 +42,25 @@ class LifeLight():
             ollama_response = requests.post(self.model_url, json=payload, timeout=self.model_url_timeout)
             ollama_response.raise_for_status()
             received_data = ollama_response.json()
-            return received_data.get("response", "No response.")
+            retrieved_response = received_data.get("response", "No response.")
+            try:
+                translated_text = self.translate_text(retrieved_response, self.lang_pref)
+            except Exception as e:
+                print(f"Unable to translate text {e}")
+
+            return translated_text
         except requests.exceptions.RequestException as e:
             return f"Error retrieving the data: {e}"
+
+    def translate_text(self, text, target_lang="ta"):
+        """
+        For the provided promt text and based on the target language,
+        text is converted and sent bask as an response
+        """
+        try:
+            return GoogleTranslator(source='auto', target=target_lang).translate(text)
+        except Exception as e:
+            print(f"Unable to translate the text: {text} due to {str(e)}")
 
     # Streamlit UI
     def chat_box(self):
@@ -69,13 +78,18 @@ class LifeLight():
             # st.sidebar.image(image_path, width="stretch", title= "Om Sai Ram")
 
             question = st.text_input("Your question:")
-
+            lang_option = st.selectbox(
+                 "Please choose the language",
+                 ("English", "Marathi", "Tamil", "Hindi"),
+                 )
+            print(f"lang pref is {lang_option}")
+            
             if st.button("Ask"):
                 if question.strip() == "":
                     st.warning("Please enter a question.")
                 else:
                     with st.spinner("Thinking..."):
-                        response = self.query_ollama(question)
+                        response = self.query_ollama(question, lang_option)
                     st.success("Answer:")
                     st.write(response)
         except Exception as e:

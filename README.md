@@ -14,6 +14,9 @@ Note: Ask questions in more detailed way for much relevant answers
 ### Response: 
 ![Sample Response](assets/readme/response_1.png)
 
+### Response in desired language
+![Tamil Response](assets/readme/tamil_translation.png)
+
 ### High Level Design
 ![HLD](assets/readme/ask_ssb_hld.png)
 
