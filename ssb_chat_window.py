@@ -6,8 +6,11 @@ Description: This script intened to have chat from the UI using streamlit
 """
 
 import streamlit as st
+from annotated_text import annotated_text
 from deep_translator import GoogleTranslator
+from ssb_values import *
 import requests
+import re
 
 
 class LifeLight():
@@ -61,6 +64,70 @@ class LifeLight():
             return GoogleTranslator(source='auto', target=target_lang).translate(text)
         except Exception as e:
             print(f"Unable to translate the text: {text} due to {str(e)}")
+    
+    def keyword_highlight(self, text: str, word: str, color: str) -> str:
+        """
+        For the text, keywords provided finds the match of the keyword and
+        then with corresponding colors provided it is highligted using markdown
+
+        Args:
+            text (str): _description_
+            word (str): _description_
+            color (str): _description_
+
+        Returns:
+            str: _description_
+        """
+        highlighted_txt = text
+        # Highlight function: wrap matched words in a <span>
+        try:
+            pattern = re.compile(re.escape(word), re.IGNORECASE)
+            highlighted_txt = pattern.sub(
+                lambda m: f"<span style='background-color: {color}; font-weight: bold;'>{m.group(0)}</span>",
+                text
+            )
+            return highlighted_txt
+        
+        except Exception as e:
+            print(f"Error highlighting the text {str(e)}")
+
+
+    def get_ssb_annotations(self) -> dict:
+        """
+        For the list of ssb_values respective annotations are tagged 
+        and sent back as dict
+
+        Returns:
+            dict: dict of annotated text
+        """
+        try:
+            ssb_annotations_keyword_mapping = {}
+            for cv in ssb_core_values:
+                ssb_annotations_keyword_mapping[cv] = "#a0f0ed"
+            for prac in ssb_practices:
+                ssb_annotations_keyword_mapping[prac] = "#ffc07a"
+            for ta in ssb_things_accepted:
+                ssb_annotations_keyword_mapping[ta] = "#d5a6ff"
+            for sa in ssb_sayings:
+                ssb_annotations_keyword_mapping[sa] = "#ffd700"
+
+            return ssb_annotations_keyword_mapping
+
+            # ssb_annotations_text = []
+            # for cv in ssb_core_values:
+            #     ssb_annotations_text.append((cv, "#a0f0ed"))
+            # for prac in ssb_practices:
+            #     ssb_annotations_text.append((prac, "#ffc07a"))
+            # for ta in ssb_things_accepted:
+            #     ssb_annotations_text.append((ta, "#d5a6ff"))
+            # for sa in ssb_sayings:
+            #     ssb_annotations_text.append((sa, "#ffd700"))
+            # return ssb_annotations_text
+            
+        except Exception as e:
+            print(f"Error fetching SSB annotations {str(e)}")
+
+
 
     # Streamlit UI
     def chat_box(self):
@@ -91,7 +158,28 @@ class LifeLight():
                     with st.spinner("Thinking..."):
                         response = self.query_ollama(question, lang_option)
                     st.success("Answer:")
-                    st.write(response)
+                    # st.write(response)
+
+                    try:
+                        concat_highlighted_text = ""
+
+                        for word, color in self.get_ssb_annotations().items():
+                            # Apply highlighting
+                            concat_highlighted_text = self.keyword_highlight(response, word=word, color=color)
+                            response = concat_highlighted_text
+                    except Exception as e:
+                        print(f"Error highlighting the keyword {e}")
+
+                    try:   
+                        if concat_highlighted_text:
+                            # Display in Streamlit
+                            st.markdown(concat_highlighted_text, unsafe_allow_html=True)
+                        else:
+                            st.write(response)
+                        
+                    except Exception as e:
+                        print(f"Error writing respone after annotating {e}")
+
         except Exception as e:
             print(f"Error writing the response to chat window {str(e)}")
 
