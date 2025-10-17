@@ -91,6 +91,37 @@ class LifeLight():
         except Exception as e:
             print(f"Error highlighting the text {str(e)}")
 
+    def add_legends(self):
+        try:
+            # Sidebar content
+            st.sidebar.image("assets/Application/ssb.jpg", caption="Om Sai Ram", width='stretch')
+
+            # Highlight map: word -> color
+            highlight_map = {
+                "Core Values": "#a0f0ed",     
+                "Practices": "#ffc07a", 
+                "Things Accepted": "#d5a6ff",  
+                "Popular Sayings": "#ffd700"
+            }
+
+            # Add spacing below image
+            st.sidebar.markdown("---")
+            st.sidebar.markdown("### 🔍 Color Reference")
+
+            # Display each legend item in the sidebar
+            for word, color in highlight_map.items():
+                st.sidebar.markdown(
+                    f"""
+                    <div style='display: flex; align-items: center; margin-bottom: 6px;'>
+                        <div style='width: 16px; height: 16px; background-color: {color}; 
+                                    border: 1px solid #000; margin-right: 8px;'></div>
+                        <span style='font-size: 24px;'>{word}</span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+        except Exception as e:
+            print(f"Error creating legends {str(e)}")
 
     def get_ssb_annotations(self) -> dict:
         """
@@ -149,7 +180,8 @@ class LifeLight():
                  "Please choose the language",
                  ("English", "Marathi", "Tamil", "Hindi"),
                  )
-            print(f"lang pref is {lang_option}")
+            
+            self.add_legends()
             
             if st.button("Ask"):
                 if question.strip() == "":

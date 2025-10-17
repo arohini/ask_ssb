@@ -20,6 +20,10 @@ Note: Ask questions in more detailed way for much relevant answers
 ### High Level Design
 ![HLD](assets/readme/ask_ssb_hld.png)
 
+### Core Value Text Highlighter
+![Text Highlighter](assets/readme/text_highlighter.png)
+
+
 | Process | Tech Spec |
 | :--- | :---: |
 | Pdf to Text | Python inbulit lib |
